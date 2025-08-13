@@ -62,7 +62,7 @@ class DistDataModel():
 		# Set up our tracker if it makes sense.
 		self.track = track
 		if track == True:
-			self.tracker = Tracker(model=self.model,model_name=self.model_name,loss_function=self.loss_fcn,\
+			self.tracker = Tracker(model=self.model,model_type=self.model_name,loss_function=self.loss_fcn,\
 			test_loader=self.test_loader,train_loader=self.train_loader,device=self.device)
 
 	'''
@@ -102,8 +102,8 @@ class DistDataModel():
 
 		if self.device == "cpu":
 			device_list=[]
-			self.optim = get_optimizer(optimizer_name,self.model, compressor, \
-							  comm_set=self.comm_set, device=self.device, topology=self.topology, \
+			self.optim = get_optimizer(optimizer_name,self.model, compressor=compressor, \
+							  comm_set=self.comm_set, device=self.device, \
 							  devices=device_list, nvlink=nvlink, lr_decay=self.lr_decay,lr=self.lr)
 			
 		else:
@@ -114,8 +114,8 @@ class DistDataModel():
 			if nvlink:
 				nvlink = nvlink_check()
 
-			self.optim = get_optimizer(optimizer_name,self.model, compressor, \
-							  comm_set=self.comm_set, device=self.device, topology=self.topology, \
+			self.optim = get_optimizer(optimizer_name,self.model, compressor=compressor, \
+							  comm_set=self.comm_set, device=self.device, \
 							  devices=devices, nvlink=nvlink, lr_decay=self.lr_decay,lr=self.lr)
 			
 			if self.resume == True:
@@ -193,7 +193,7 @@ class DistDataModel():
 						checkpoint.update({'model_args':self.model.model_args, 'config': self.model.config})
 					os.makedirs(self.model.out_dir, exist_ok=True)
 					torch.save(checkpoint, os.path.join(self.model.out_dir, 'chk_'+output_file+'_Epoch_'+str(self.epoch)+'.pt'))
-			print(f"Checkpoints saved at {self.model.out_dir}")
+					print(f"Checkpoint saved at {self.model.out_dir}")
 
 		# If we are tracking, return our out_dict at the end of training.
 		if self.track:

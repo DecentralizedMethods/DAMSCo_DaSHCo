@@ -1,7 +1,6 @@
 from mpi4py import MPI
 import torch
 from .Compressor import *
-# from .temp_compressor import *
 
 '''
 CommNet is a class which deals with multiple aspects of distributed models.

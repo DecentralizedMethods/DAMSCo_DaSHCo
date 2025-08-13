@@ -4,9 +4,9 @@ import torch
 
 class DaSHCo(Optimizer):
 
-    def __init__(self,model,lr=0.001,compressor=NoneCompressor(),device="cpu",devices=[],comm_set=['x'],lr_decay="none",k=1,nvlink=False):
-        super().__init__(model,compressor,optim_name="DaSHCo",comm_set=comm_set,device=device,topology="ring",devices=devices,
-                         nvlink=nvlink,lr_decay=lr_decay,lr=lr,k=k)
+    def __init__(self,model,lr=0.001,compressor=NoneCompressor(),device="cpu",devices=[],comm_set=['x'],lr_decay="none",nvlink=False):
+        super().__init__(model,compressor=compressor,optim_name="DaSHCo",comm_set=comm_set,device=device,topology="ring",devices=devices,
+                         nvlink=nvlink,lr_decay=lr_decay,lr=lr)
         self.set_data()
 
     def set_data(self):
@@ -58,7 +58,7 @@ class DaSHCo(Optimizer):
             with torch.no_grad():
                 learning_rate = self.lr
                 if self.lr_decay == "cosine":
-                    learning_rate = super.get_lr(self.steps)
+                    learning_rate = super().get_lr(self.steps)
                 
                 self.data['g_tilde'][name] = param.grad.data.detach().clone()
                 self.data['g'][name] = self.data['g'][name] - self.data['g_tilde_prev'][name] + self.data['g_tilde'][name]
@@ -70,11 +70,11 @@ class DaSHCo(Optimizer):
                     self.data['g_bar_prev'][name] = self.data['g_bar'][name].clone()
                     compress_final = self.opt_compressor.compress(self.data['g'][name]-self.data['g_bar'][name])
                     self.data['delta_g'][name] = self.opt_compressor.decompress(compress_final[1:])
-                    super.neighbor_reduce_cond(field='g_bar',name=name,comm_set=self.comm_set)
+                    super().neighbor_reduce_cond(field='g_bar',name=name,comm_set=self.comm_set)
                     self.data['g'][name] = self.data['g'][name]+self.gamma_g*(self.data['g_bar'][name]-self.data['g_bar_prev'][name])
 
                 else:
-                    super.neighbor_reduce_cond(field='g',name=name,comm_set=self.comm_set)
+                    super().neighbor_reduce_cond(field='g',name=name,comm_set=self.comm_set)
                 
                 self.data['m'][name] = (self.beta1 * self.data['m'][name]) + ((1-self.beta1) * self.data['g'][name])
                 self.data['x'][name] = (self.data['x'][name] - learning_rate*(self.data['m'][name]))
@@ -86,11 +86,11 @@ class DaSHCo(Optimizer):
                     self.data['x_bar_prev'][name] = self.data['x_bar'][name].clone()
                     compress_final = self.opt_compressor.compress(self.data['x'][name]-self.data['x_bar'][name])
                     self.data['delta_x'][name] = self.opt_compressor.decompress(compress_final[1:])
-                    super.neighbor_reduce_cond(field='x_bar',name=name,comm_set=self.comm_set) 
+                    super().neighbor_reduce_cond(field='x_bar',name=name,comm_set=self.comm_set) 
                     self.data['x'][name] = (self.data['x'][name]+self.gamma_x*(self.data['x_bar'][name]-self.data['x_bar_prev'][name]))
             
                 else:
-                    super.neighbor_reduce_cond(field='x',name=name,comm_set=self.comm_set)
+                    super().neighbor_reduce_cond(field='x',name=name,comm_set=self.comm_set)
 
                 param.copy_(self.data['x'][name])
                 param.grad.copy_(self.data['g'][name])

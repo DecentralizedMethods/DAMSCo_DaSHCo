@@ -48,7 +48,7 @@ class Tracker(CommNet):
 				if loss == None:
 					loss = torch.tensor(0, dtype=torch.int8)
 				stats['loss'].append(loss.data.detach().cpu())
-				stats['acc'].append(acc.data.detach().cpu())
+				stats['acc'].append(torch.tensor(acc).data.detach().cpu())
 
 			else:
 				model_output = self.model(data)

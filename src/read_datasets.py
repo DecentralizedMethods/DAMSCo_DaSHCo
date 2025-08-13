@@ -1,7 +1,11 @@
+import pickle
 import numpy as np
 import torch
 import torchvision.datasets
 import torchvision.transforms as transforms
+import os
+import requests
+from torch.utils.data import TensorDataset
 
 def read_datasets(dataset_name, data_dir=None):
     if dataset_name in ["CIFAR10", "FashionMNIST", "Shakespeare"]:
@@ -12,16 +16,17 @@ def read_datasets(dataset_name, data_dir=None):
         
 
     if data_dir==None:
-        data_dir = './data/' + dataset_name + '/'
+        data_dir = os.getcwd() + '/data/' + dataset_name + '/'
+        os.makedirs(data_dir, exist_ok=True)
         
     if dataset_name == "FashionMNIST":
-        train_dataset = torchvision.datasets.FashionMNIST("../data", train=True, download=True,
+        train_dataset = torchvision.datasets.FashionMNIST(data_dir, train=True, download=True,
                    transform=transforms.Compose([
                        transforms.ToTensor(),
                        transforms.Normalize((0.1307,), (0.3081,))
                    ]))
                    
-        test_dataset = torchvision.datasets.FashionMNIST("../data", train=False, download=True,
+        test_dataset = torchvision.datasets.FashionMNIST(data_dir, train=False, download=True,
                     transform=transforms.Compose([
                        transforms.ToTensor(),
                        transforms.Normalize((0.1307,), (0.3081,))
@@ -42,19 +47,22 @@ def read_datasets(dataset_name, data_dir=None):
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2471, 0.2435, 0.2616)),
         ])
 
-        train_dataset = torchvision.datasets.CIFAR10(root="../data", train=True, download=True, transform=transform_train)
-        test_dataset  = torchvision.datasets.CIFAR10(root="../data", train=False, download=True, transform=transform_test)
+        train_dataset = torchvision.datasets.CIFAR10(root=data_dir, train=True, download=True, transform=transform_train)
+        test_dataset  = torchvision.datasets.CIFAR10(root=data_dir, train=False, download=True, transform=transform_test)
         
         return train_dataset, test_dataset
 
     if dataset_name == "Shakespeare":
         # download the tiny shakespeare dataset
+        # print(data_dir)
         input_file_path = os.path.join(data_dir, 'input.txt')
         if not os.path.exists(input_file_path):
+            # print("input download started")
             data_url = 'https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt'
             response = requests.get(data_url)
             with open(input_file_path, 'w') as f:
                 f.write(response.text)
+            # print("input downloaded")
 
         with open(input_file_path, 'r') as f:
             data = f.read()

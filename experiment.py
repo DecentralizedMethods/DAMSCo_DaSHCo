@@ -6,6 +6,7 @@ compressor_map = {'none': NoneCompressor(),
 				   'topk30': TopKCompressor(0.3),
 				   'topk40': TopKCompressor(0.4),
 				   'topk50': TopKCompressor(0.5),
+                   'topk55': TopKCompressor(0.55),
 				   'topk60': TopKCompressor(0.6),
 				   'qsgd': QSGDCompressor(2)}
 
@@ -48,11 +49,11 @@ def main():
         compressor=compressor_map[args.compress],
         lr_decay=args.lr_decay,
         variety=args.variety,
-        learning_rate=args.lr,
+        lr=args.lr,
         resume= args.resume
     )
 
-    model.epochs = args.epochs * model.k
+    model.epochs = args.epochs
     name = (f"{args.dataset}-{args.optimizer}-"
             f"{args.compress}-Rank-{args.rank}-"
             f"{args.variety}-lrtype-{args.lr_decay}-"
